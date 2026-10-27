@@ -369,6 +369,7 @@
       PT.ui.closeMenu();
     }
 
+    if (PT.ui.helpHit(x, y)) { PT.tutorial.oeffnen(); return; }
     if (PT.ui.overHud(x, y)) return;
     if (oeffneMenu(x, y)) return;
 
@@ -426,6 +427,13 @@
   // --- Schleife -------------------------------------------------------------------
 
   function step(dt) {
+    // Solange die Anleitung offen ist, ruht das Spiel komplett
+    if (PT.tutorial.istOffen()) {
+      PT.tutorial.update(dt, g);
+      PT.input.endStep();
+      return;
+    }
+
     PT.oven.update(dt);
     PT.customers.update(dt);
 
@@ -501,6 +509,7 @@
     aufgabenZaehler();
     PT.oven.drawOverlay(g);
     PT.ui.draw(g);
+    PT.tutorial.draw(g);
   }
 
   function frame(now) {
@@ -533,6 +542,8 @@
     PT.chef.init();
     PT.economy.init();
     PT.customers.init();
+
+    PT.tutorial.oeffnen();
 
     window.addEventListener('resize', function () { PT.gfx.resize(); });
 

@@ -24,6 +24,8 @@ PT.ui = (function () {
     hint.stars = stars || 0;
   }
 
+  function clearHint() { hint.time = 0; }
+
   function update(dt) {
     if (hint.time > 0) hint.time -= dt;
     refreshMenu();
@@ -306,6 +308,20 @@ PT.ui = (function () {
     g.rect(x, y, w, h, color || col.hudSoft, h / 2);
   }
 
+  // Fragezeichen neben den Anzeigen: holt die Anleitung zurück
+  var HELP = { x: 532, y: 12, w: 30, h: 30 };
+
+  function helpHit(x, y) {
+    return x >= HELP.x && x <= HELP.x + HELP.w && y >= HELP.y && y <= HELP.y + HELP.h;
+  }
+
+  function drawHelp(g) {
+    var hot = ueber(HELP.x, HELP.y, HELP.w, HELP.h);
+    g.circle(HELP.x + 15, HELP.y + 15, 15, hot ? col.chefAccent : col.hudSoft);
+    g.text('?', HELP.x + 15, HELP.y + 6,
+           { size: 16, weight: 800, align: 'center', color: hot ? '#fff8f2' : col.textDim });
+  }
+
   function drawHeader(g) {
     g.rect(0, 0, C.W, C.HUD_TOP, col.hud);
 
@@ -326,6 +342,8 @@ PT.ui = (function () {
     g.text('Bedient', 376, 21, { size: 13, weight: 600, color: col.textDim });
     g.text(st.bedient + (st.verloren ? '  (' + st.verloren + ' weg)' : ''),
            506, 20, { size: 15, weight: 700, align: 'right' });
+
+    drawHelp(g);
 
     // Pizza in der Hand
     var hand = PT.chef.state.carry;
@@ -384,12 +402,14 @@ PT.ui = (function () {
 
   return {
     setHint: setHint,
+    clearHint: clearHint,
     update: update,
     draw: draw,
     openMenu: openMenu,
     closeMenu: closeMenu,
     isMenuOpen: isMenuOpen,
     menuClick: menuClick,
-    overHud: overHud
+    overHud: overHud,
+    helpHit: helpHit
   };
 })();

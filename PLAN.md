@@ -104,6 +104,23 @@ Gehweg und Straße mit Bank, Laterne und Stehschild.
 - Maus und Finger laufen über dieselben Pointer-Events, Menüzeilen sind 34
   Einheiten hoch, damit man sie am Handy trifft.
 
+## Anleitung beim Start
+
+Beim Laden liegt eine Anleitung über dem Laden (`tutorial.js`): sieben Karten,
+die der Reihe nach erklären, was man wo macht – Gäste, Belegen, Backen,
+Servieren, Theke und Bautafel, zum Schluss die Steuerung.
+
+- **Sie zeigt die Stelle, nicht nur den Text.** Der Laden wird abgedunkelt und
+  genau der Bereich, um den es geht, wieder hell ausgeschnitten – dafür wird der
+  Laden innerhalb des Ausschnitts ein zweites Mal gezeichnet. Die Karte stellt
+  sich selbst dorthin, wo sie am wenigsten davon verdeckt.
+- **Überspringen geht immer.** Jede Karte hat „Überspringen“, dazu „Zurück“ und
+  „Weiter“; die letzte endet mit „Los geht's“. Auf der Tastatur: Enter oder
+  Leertaste weiter, Pfeiltasten vor und zurück, Esc überspringt.
+- **Das Fragezeichen in der Kopfzeile holt sie jederzeit zurück.**
+- **Das Spiel ruht so lange.** `main.js` überspringt den Logikschritt, solange
+  die Anleitung offen ist: kein Gast kommt, keine Backzeit läuft.
+
 ## Ofen und Rezepte
 
 Der Ofen ist ein Zeitspiel, kein Verwaltungsspiel.
