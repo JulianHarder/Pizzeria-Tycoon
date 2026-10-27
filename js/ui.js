@@ -38,13 +38,34 @@ PT.ui = (function () {
   // am Bild und am kleinen Zeichen in der Ecke; die Beschriftung steht nur als
   // Hilfe darunter, wenn der Zeiger darauf liegt.
 
-  var TILE = 44;        // Kachelgröße, noch mit dem Finger zu treffen
-  var GAP = 6;
-  var PAD = 9;
-  var TITLE_H = 20;
-  var TIP_H = 19;        // eine Zeile Hilfe, mit Unterzeile mehr
-  var TITLE_SIZE = 11;
-  var TIP_SIZE = 12;
+  // Grundmaße eines Fensters. Am Handy wird alles noch ein Stück größer,
+  // damit die Kacheln mit dem Finger sicher zu treffen sind.
+  var BASIS = {
+    tile: 50,          // Kachelgröße
+    gap: 7,
+    pad: 11,
+    titleH: 22,
+    tipH: 21,          // eine Zeile Hilfe, mit Unterzeile mehr
+    titleSize: 12,
+    tipSize: 13
+  };
+  var TOUCH_FAKTOR = 1.22;
+  var ICON_BASIS = 44;   // Kachelgröße, für die die Symbole gezeichnet sind
+  var MAX_W = 340;
+
+  function masse() {
+    var f = PT.input.pointer.touch ? TOUCH_FAKTOR : 1;
+    return {
+      f: f,
+      tile: Math.round(BASIS.tile * f),
+      gap: Math.round(BASIS.gap * f),
+      pad: Math.round(BASIS.pad * f),
+      titleH: Math.round(BASIS.titleH * f),
+      tipH: Math.round(BASIS.tipH * f),
+      titleSize: BASIS.titleSize * f,
+      tipSize: BASIS.tipSize * f
+    };
+  }
 
   // Das Fenster bekommt keinen fertigen Inhalt, sondern einen Bauplan: eine
   // Funktion, die { title, items } aus dem aktuellen Spielstand liefert. Der
@@ -81,27 +102,31 @@ PT.ui = (function () {
   }
 
   function menuGeometry(g) {
+    var m = masse();
     var rows = rowsOf();
     var cols = 1;
     for (var i = 0; i < rows.length; i++) cols = Math.max(cols, rows[i].length);
 
-    var w = PAD * 2 + cols * TILE + (cols - 1) * GAP;
-    w = Math.max(w, g.textWidth(menu.title, TITLE_SIZE, 700) + PAD * 2 + 6);
+    // So breit müssen die Kacheln auf jeden Fall nebeneinander passen
+    var kachelW = m.pad * 2 + cols * m.tile + (cols - 1) * m.gap;
+
+    var w = Math.max(kachelW, g.textWidth(menu.title, m.titleSize, 700) + m.pad * 2 + 6);
 
     // auch der Hilfetext unten muss hineinpassen
     for (var k = 0; k < menu.items.length; k++) {
-      w = Math.max(w, g.textWidth(menu.items[k].label, TIP_SIZE, 600) + PAD * 2 + 6);
+      w = Math.max(w, g.textWidth(menu.items[k].label, m.tipSize, 600) + m.pad * 2 + 6);
       if (menu.items[k].sub) {
-        w = Math.max(w, g.textWidth(menu.items[k].sub, TIP_SIZE - 1, 400) + PAD * 2 + 6);
+        w = Math.max(w, g.textWidth(menu.items[k].sub, m.tipSize - 1, 400) + m.pad * 2 + 6);
       }
     }
-    w = Math.min(w, 300);
+    w = Math.max(Math.min(w, MAX_W), kachelW);
+
     // Gibt es Unterzeilen, braucht die Hilfe unten mehr Platz
-    var tipH = TIP_H;
+    var tipH = m.tipH;
     for (var t = 0; t < menu.items.length; t++) {
-      if (menu.items[t].sub) { tipH = TIP_H + 13; break; }
+      if (menu.items[t].sub) { tipH = m.tipH + Math.round(14 * m.f); break; }
     }
-    var h = TITLE_H + rows.length * TILE + (rows.length - 1) * GAP + tipH + PAD;
+    var h = m.titleH + rows.length * m.tile + (rows.length - 1) * m.gap + tipH + m.pad;
 
     var x = menu.x + 22;
     var y = menu.y - 28;
@@ -109,16 +134,17 @@ PT.ui = (function () {
     x = Math.max(14, Math.min(C.W - 14 - w, x));
     y = Math.max(C.HUD_TOP + 10, Math.min(C.H - C.HUD_BOTTOM - 10 - h, y));
 
-    return { x: x, y: y, w: w, h: h, rows: rows, tipH: tipH };
+    return { x: x, y: y, w: w, h: h, rows: rows, tipH: tipH, m: m };
   }
 
   function tileRect(geo, r, i) {
     var row = geo.rows[r];
-    var rowW = row.length * TILE + (row.length - 1) * GAP;
+    var m = geo.m;
+    var rowW = row.length * m.tile + (row.length - 1) * m.gap;
     return {
-      x: geo.x + (geo.w - rowW) / 2 + i * (TILE + GAP),
-      y: geo.y + TITLE_H + r * (TILE + GAP),
-      w: TILE, h: TILE
+      x: geo.x + (geo.w - rowW) / 2 + i * (m.tile + m.gap),
+      y: geo.y + m.titleH + r * (m.tile + m.gap),
+      w: m.tile, h: m.tile
     };
   }
 
@@ -142,9 +168,13 @@ PT.ui = (function () {
 
   // --- Symbole auf den Kacheln ------------------------------------------------
 
-  function badge(g, x, y, art, farbe) {
-    g.circle(x, y, 8.5, farbe);
+  function badge(g, x, y, art, farbe, f) {
     var ctx = g.ctx();
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(f || 1, f || 1);
+    ctx.translate(-x, -y);
+    g.circle(x, y, 8.5, farbe);
     ctx.save();
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2.4;
@@ -169,6 +199,7 @@ PT.ui = (function () {
       ctx.moveTo(x + 0.5, y + 4); ctx.lineTo(x + 5, y);
     }
     ctx.stroke();
+    ctx.restore();
     ctx.restore();
   }
 
@@ -221,10 +252,19 @@ PT.ui = (function () {
     ctx.restore();
   }
 
+  // Die Symbole sind für eine 44er Kachel gezeichnet; ist die Kachel größer,
+  // wird einfach mitskaliert.
   function drawIcon(g, it, t) {
     var cx = t.x + t.w / 2;
     var cy = t.y + t.h / 2;
     var ic = it.icon || {};
+    var f = t.w / ICON_BASIS;
+
+    var ctx = g.ctx();
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(f, f);
+    ctx.translate(-cx, -cy);
 
     if (ic.kind === 'pizza') g.pizza(cx, cy, 15, ic.recipe, ic.grade);
     else if (ic.kind === 'trash') trashIcon(g, cx, cy);
@@ -234,29 +274,34 @@ PT.ui = (function () {
     else if (ic.kind === 'ofenPlus') ofenIcon(g, cx, cy, true);
     else slotIcon(g, cx, cy);
 
+    ctx.restore();
+
     if (ic.badge) {
-      badge(g, t.x + t.w - 9, t.y + 9, ic.badge, ic.badgeColor || col.chefAccent);
+      badge(g, t.x + t.w - 9 * f, t.y + 9 * f, ic.badge,
+            ic.badgeColor || col.chefAccent, f);
     }
   }
 
-  function kuerzen(g, text, maxW) {
-    if (g.textWidth(text, TIP_SIZE, 600) <= maxW) return text;
+  function kuerzen(g, text, maxW, size) {
+    if (g.textWidth(text, size, 600) <= maxW) return text;
     var t = text;
-    while (t.length > 4 && g.textWidth(t + '...', TIP_SIZE, 600) > maxW) t = t.slice(0, -1);
+    while (t.length > 4 && g.textWidth(t + '...', size, 600) > maxW) t = t.slice(0, -1);
     return t + '...';
   }
 
   function drawMenu(g) {
     if (!menu) return;
     var geo = menuGeometry(g);
+    var m = geo.m;
     var p = PT.input.pointer;
 
     g.ring(menu.x, menu.y, 16, 'rgba(255,255,255,0.6)', 2.5);
     g.withShadow(26, 10, function () {
       g.rect(geo.x, geo.y, geo.w, geo.h, col.hud, 16);
     });
-    g.text(kuerzen(g, menu.title, geo.w - PAD * 2), geo.x + PAD + 2, geo.y + 5,
-           { size: TITLE_SIZE, weight: 700, color: col.textDim });
+    g.text(kuerzen(g, menu.title, geo.w - m.pad * 2, m.titleSize),
+           geo.x + m.pad + 2, geo.y + 5,
+           { size: m.titleSize, weight: 700, color: col.textDim });
 
     var tip = null;
     var sub = null;
@@ -268,7 +313,8 @@ PT.ui = (function () {
         var hot = on && p.x >= t.x && p.x <= t.x + t.w && p.y >= t.y && p.y <= t.y + t.h;
         if (hot) { tip = it.label; sub = it.sub || null; }
 
-        g.rect(t.x, t.y, t.w, t.h, hot ? col.chefAccent : col.hudSoft, 12);
+        g.rect(t.x, t.y, t.w, t.h, hot ? col.chefAccent : col.hudSoft,
+               Math.round(12 * m.f));
         if (!on) {
           var ctx = g.ctx();
           ctx.save();
@@ -292,11 +338,12 @@ PT.ui = (function () {
     }
     if (tip) {
       var ty = geo.y + geo.h - geo.tipH + 2;
-      g.text(kuerzen(g, tip, geo.w - PAD * 2), geo.x + geo.w / 2, ty,
-             { size: TIP_SIZE, weight: 600, align: 'center', color: col.text });
+      g.text(kuerzen(g, tip, geo.w - m.pad * 2, m.tipSize), geo.x + geo.w / 2, ty,
+             { size: m.tipSize, weight: 600, align: 'center', color: col.text });
       if (sub) {
-        g.text(kuerzen(g, sub, geo.w - PAD * 2), geo.x + geo.w / 2, ty + 14,
-               { size: TIP_SIZE - 1, align: 'center', color: col.textDim });
+        g.text(kuerzen(g, sub, geo.w - m.pad * 2, m.tipSize - 1),
+               geo.x + geo.w / 2, ty + Math.round(15 * m.f),
+               { size: m.tipSize - 1, align: 'center', color: col.textDim });
       }
     }
   }
@@ -322,6 +369,78 @@ PT.ui = (function () {
            { size: 16, weight: 800, align: 'center', color: hot ? '#fff8f2' : col.textDim });
   }
 
+  // Vollbild: vor allem fürs Handy gedacht, damit die Leisten des Browsers
+  // verschwinden und der Laden den ganzen Bildschirm bekommt.
+  var FULL = { x: 570, y: 12, w: 30, h: 30 };
+
+  function vollbildMoeglich() {
+    var el = document.documentElement;
+    return !!(el.requestFullscreen || el.webkitRequestFullscreen);
+  }
+
+  function imVollbild() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  // Muss direkt aus dem Klick heraus aufgerufen werden, sonst lehnt der
+  // Browser das Vollbild ab (siehe main.js).
+  function vollbildUmschalten() {
+    var el = document.documentElement;
+    try {
+      if (imVollbild()) {
+        var aus = document.exitFullscreen || document.webkitExitFullscreen;
+        if (aus) aus.call(document);
+        return;
+      }
+      var an = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (!an) { setHint('Vollbild geht in diesem Browser nicht'); return; }
+      var versprechen = an.call(el);
+      if (versprechen && versprechen['catch']) {
+        versprechen['catch'](function () {
+          setHint('Vollbild geht in diesem Browser nicht');
+        });
+      }
+    } catch (e) {
+      setHint('Vollbild geht in diesem Browser nicht');
+    }
+  }
+
+  function fullscreenHit(x, y) {
+    return vollbildMoeglich() &&
+           x >= FULL.x && x <= FULL.x + FULL.w && y >= FULL.y && y <= FULL.y + FULL.h;
+  }
+
+  function drawVollbild(g) {
+    if (!vollbildMoeglich()) return;
+    var hot = ueber(FULL.x, FULL.y, FULL.w, FULL.h);
+    var cx = FULL.x + 15, cy = FULL.y + 15;
+    g.circle(cx, cy, 15, hot ? col.chefAccent : col.hudSoft);
+
+    // Vier Ecken. Außerhalb des Vollbilds zeigen sie nach außen, im Vollbild
+    // nach innen - so sieht man gleich, was der Knopf tut.
+    var raus = !imVollbild();
+    var r = raus ? 6.5 : 3.0;
+    var l = 4;
+    var ctx = g.ctx();
+    ctx.save();
+    ctx.strokeStyle = hot ? '#fff8f2' : col.textDim;
+    ctx.lineWidth = 2.1;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (var sx = -1; sx <= 1; sx += 2) {
+      for (var sy = -1; sy <= 1; sy += 2) {
+        var ex = cx + sx * r, ey = cy + sy * r;
+        if (raus) {
+          ctx.moveTo(ex - sx * l, ey); ctx.lineTo(ex, ey); ctx.lineTo(ex, ey - sy * l);
+        } else {
+          ctx.moveTo(ex + sx * l, ey); ctx.lineTo(ex, ey); ctx.lineTo(ex, ey + sy * l);
+        }
+      }
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
   function drawHeader(g) {
     g.rect(0, 0, C.W, C.HUD_TOP, col.hud);
 
@@ -344,6 +463,7 @@ PT.ui = (function () {
            506, 20, { size: 15, weight: 700, align: 'right' });
 
     drawHelp(g);
+    drawVollbild(g);
 
     // Pizza in der Hand
     var hand = PT.chef.state.carry;
@@ -410,6 +530,8 @@ PT.ui = (function () {
     isMenuOpen: isMenuOpen,
     menuClick: menuClick,
     overHud: overHud,
-    helpHit: helpHit
+    helpHit: helpHit,
+    fullscreenHit: fullscreenHit,
+    vollbildUmschalten: vollbildUmschalten
   };
 })();

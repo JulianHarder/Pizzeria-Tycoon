@@ -101,8 +101,14 @@ Gehweg und Straße mit Bank, Laterne und Stehschild.
   ansteht. Nur wer selbst mit WASD läuft, übernimmt und wirft die Liste weg.
 - **Tastatur zusätzlich:** WASD oder Pfeiltasten laufen, E handelt an der
   nächsten Station.
-- Maus und Finger laufen über dieselben Pointer-Events, Menüzeilen sind 34
-  Einheiten hoch, damit man sie am Handy trifft.
+- Maus und Finger laufen über dieselben Pointer-Events. **Am Finger werden die
+  Auswahlfenster automatisch größer** (Faktor 1,22 auf Kacheln, Abstände und
+  Schrift), damit man sie am Handy sicher trifft; die Symbole skalieren mit.
+- **Vollbild:** Ein Knopf in der Kopfzeile neben dem Fragezeichen schaltet das
+  Vollbild an und aus - vor allem fürs Handy, damit die Browserleisten
+  verschwinden. Angefordert wird es direkt im Klick-Ereignis (`main.js`), sonst
+  lehnt der Browser es ab; kann der Browser kein Vollbild (iPhone), erscheint
+  der Knopf gar nicht erst.
 
 ## Anleitung beim Start
 

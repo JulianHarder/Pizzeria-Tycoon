@@ -105,7 +105,8 @@ PT.tutorial = (function () {
       text: [
         'Maus oder Finger: Klick auf Ofen, Arbeitsfläche, Theke, Tonne, Bautafel oder Gast. Das Auswahlfenster bleibt offen und geht von selbst mit.',
         'Ist der Chef schon unterwegs, macht er den Schritt fertig und dein Klick reiht sich dahinter ein - bis zu drei.',
-        'Wer lieber tippt: WASD oder die Pfeiltasten laufen, E handelt an der nächsten Station.'
+        'Wer lieber tippt: WASD oder die Pfeiltasten laufen, E handelt an der nächsten Station.',
+        'Am Handy lohnt sich der Vollbild-Knopf oben neben dem Fragezeichen.'
       ],
       ziel: function () { return null; }
     }

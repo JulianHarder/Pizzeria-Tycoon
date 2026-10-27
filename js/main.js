@@ -545,7 +545,17 @@
 
     PT.tutorial.oeffnen();
 
+    // Das Vollbild muss im Ereignis selbst angefordert werden, nicht erst in
+    // der Spielschleife - sonst lehnt der Browser es ab. Der Knopf liegt in
+    // der Kopfzeile, die Schleife lässt Klicks dort ohnehin liegen.
+    canvas.addEventListener('pointerdown', function (e) {
+      var p = PT.gfx.toLogical(e.clientX, e.clientY);
+      if (PT.ui.fullscreenHit(p.x, p.y)) PT.ui.vollbildUmschalten();
+    });
+
     window.addEventListener('resize', function () { PT.gfx.resize(); });
+    document.addEventListener('fullscreenchange', function () { PT.gfx.resize(); });
+    document.addEventListener('webkitfullscreenchange', function () { PT.gfx.resize(); });
 
     last = performance.now();
     requestAnimationFrame(frame);

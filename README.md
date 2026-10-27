@@ -57,6 +57,7 @@ Der Druck entsteht aus drei Dingen zugleich: Die **Backzeit** läuft, die
 | WASD oder Pfeiltasten | selbst laufen (übernimmt und wirft die Aufgabenliste weg) |
 | E oder Leertaste | an der nächsten Station handeln |
 | Fragezeichen oben | Anleitung wieder öffnen |
+| Knopf daneben | Vollbild an und aus (fürs Handy) |
 
 Die Auswahlfenster sind **Bild-Kacheln, keine Textlisten**: Jede Kachel zeigt die
 Sache selbst, ein kleines Zeichen in der Ecke sagt, was passiert – Plus für neu
@@ -68,6 +69,11 @@ klickt.
 Ist der Chef schon unterwegs, **macht er seinen Schritt fertig** und der neue
 Klick reiht sich dahinter ein – bis zu drei. Ein Zähler über dem Kopf zeigt, was
 noch ansteht.
+
+Am Handy werden die Auswahlfenster von selbst größer, damit man die Kacheln mit
+dem Finger sicher trifft, und der Vollbild-Knopf in der Kopfzeile räumt die
+Browserleisten weg. Kann der Browser kein Vollbild (iPhone), erscheint der Knopf
+gar nicht erst.
 
 ---
 
